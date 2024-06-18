@@ -44,7 +44,16 @@ app.use(
     `),
     rootValue: {
       events: () => {
-        return events;
+        return Event.find()
+          .then((events) => {
+            events.map(event => {
+              return { ...event._doc }
+            });
+          })
+          .catch(err => {
+            //console.log("Error finding event: " + err);
+            throw err;
+          });
       },
       createEvent: args => {
         const event = new Event({
@@ -58,18 +67,17 @@ app.use(
             console.log(result);
             return { ...result._doc };
           })
-          .catch((err) => {
+          .catch(err => {
             console.log("Error saving event: " + err);
             throw err;
           });
-        return event;
       }
     },
     graphiql: true
   })
 );
 
-mongoose.connect(`mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@testcluster1.wxdgvkq.mongodb.net/events`)
+mongoose.connect(`mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@testcluster1.wxdgvkq.mongodb.net/${process.env.MONGO_DB_NAME}?retryWrites=true`)
   .then(() => {
     console.log("Successfully connected to database and listening on port:3000")
     app.listen(3000);
