@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 
 const app = express();
 
-const events = [];
+const Event = require('./models/event.js');
 
 app.use(bodyParser.json());
 
@@ -44,18 +44,24 @@ app.use(
     `),
     rootValue: {
       events: () => {
-        //return ['Romantic Cooking', 'Sailing', 'All-Night Coding'];
         return events;
       },
-      createEvent: (args) => {
-        const event = {
-            _id: Math.random().toString(),
-            title: args.eventInput.title,
-            description: args.eventInput.description,
-            price: +args.eventInput.price,
-            date: args.eventInput.date
-        };
-        events.push(event);
+      createEvent: args => {
+        const event = new Event({
+          title: args.eventInput.title,
+          description: args.eventInput.description,
+          price: +args.eventInput.price,
+          date: new Date(args.eventInput.date)
+        });
+        return event.save()
+          .then((result) => {
+            console.log(result);
+            return { ...result._doc };
+          })
+          .catch((err) => {
+            console.log("Error saving event: " + err);
+            throw err;
+          });
         return event;
       }
     },
@@ -63,11 +69,11 @@ app.use(
   })
 );
 
-mongoose.connect(`mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@testcluster1.wxdgvkq.mongodb.net/${process.env.MONGO_DB}`)
-.then(() => {
+mongoose.connect(`mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@testcluster1.wxdgvkq.mongodb.net/events`)
+  .then(() => {
     console.log("Successfully connected to database and listening on port:3000")
     app.listen(3000);
-})
-.catch(err => {
+  })
+  .catch(err => {
     console.log("Error connecting to database: " + err);
-});
+  });
