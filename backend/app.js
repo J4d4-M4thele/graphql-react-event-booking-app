@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const graphqlHttp = require('express-graphql');
 const { buildSchema } = require('graphql');
+const mongoose = require('mongoose');
 
 const app = express();
 
@@ -62,4 +63,11 @@ app.use(
   })
 );
 
-app.listen(3000);
+mongoose.connect(`mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@testcluster1.wxdgvkq.mongodb.net/`)
+.then(() => {
+    console.log("Successfully connected to database and listening on port:3000")
+    app.listen(3000);
+})
+.catch(err => {
+    console.log("Error connecting to database: " + err);
+});
