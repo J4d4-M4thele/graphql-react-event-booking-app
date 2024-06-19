@@ -46,8 +46,8 @@ app.use(
       events: () => {
         return Event.find()
           .then((events) => {
-            events.map(event => {
-              return { ...event._doc }
+            return events.map(event => {
+              return { ...event._doc, _id: event.id };
             });
           })
           .catch(err => {
