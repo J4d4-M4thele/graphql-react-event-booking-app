@@ -3,16 +3,27 @@ const bcrypt = require('bcrypt');
 const Event = require('../../models/event.js');
 const User = require('../../models/user.js');
 const Booking = require('../../models/booking.js');
+const { dateToString } = require('../../helpers/date.js');
 
 const transformEvent = event => {
     return {
         ...event._doc,
         _id: event.id,
-        date: new Date(event._doc.date).toISOString(),
+        date: dateToString(event._doc.date),
         creator: user.bind(this, event.creator)
     };
 };
 
+const transformBooking = booking => {
+    return {
+        ...booking._doc,
+        _id: booking.id,
+        user: user.bind(this, booking._doc.user),
+        event: singleEvent.bind(this, booking._doc.event),
+        createdAt: dateToString(booking._doc.createdAt),
+        updatedAt: dateToString(booking._doc.updatedAt)
+    };
+};
 
 const events = async eventIds => {
     try {
@@ -62,14 +73,7 @@ module.exports = {
         try {
             const bookings = await Booking.find();
             return bookings.map(booking => {
-                return {
-                    ...booking._doc,
-                    _id: booking.id,
-                    user: user.bind(this, booking._doc.user),
-                    event: singleEvent.bind(this, booking._doc.event),
-                    createdAt: new Date(booking._doc.createdAt).toISOString(),
-                    updatedAt: new Date(booking._doc.updatedAt).toISOString()
-                };
+                return transformBooking(booking);
             });
         } catch (err) {
             throw err;
@@ -80,7 +84,7 @@ module.exports = {
             title: args.eventInput.title,
             description: args.eventInput.description,
             price: args.eventInput.price,
-            date: new Date(args.eventInput.date),
+            date: dateToString(args.eventInput.date),
             creator: '6672dacdc4bd75a8a347a166'
         });
 
@@ -126,12 +130,7 @@ module.exports = {
             event: fetchedEvent
         });
         const result = await booking.save();
-        return {
-            ...result._doc,
-            _id: result.id,
-            createdAt: new Date(result._doc.createdAt).toISOString(),
-            updatedAt: new Date(result._doc.updatedAt).toISOString()
-        };
+        return transformBooking(result);
     },
     cancelBooking: async args => {
         try {
