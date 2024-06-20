@@ -1,4 +1,4 @@
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 
 const Event = require('../../models/event.js');
 const User = require('../../models/user.js');
@@ -54,7 +54,7 @@ module.exports = {
       description: args.eventInput.description,
       price: args.eventInput.price,
       date: new Date(args.eventInput.date),
-      creator: '66729cf0263ff64f6498fc53' // Static ID for testing; replace with dynamic ID
+      creator: '6673ef13e58609af1f6a005a'
     });
 
     let createdEvent;
@@ -66,12 +66,12 @@ module.exports = {
         date: new Date(result._doc.date).toISOString(),
         creator: user.bind(this, result._doc.creator)
       };
-      const user = await User.findById('66729cf0263ff64f6498fc53'); // Static ID for testing; replace with dynamic ID
-      if (!user) {
+      const creator = await User.findById('6673ef13e58609af1f6a005a');
+      if (!creator) {
         throw new Error('User not found.');
       }
-      user.createdEvents.push(event);
-      await user.save();
+      creator.createdEvents.push(event);
+      await creator.save();
       return createdEvent;
     } catch (err) {
       console.log(err);
