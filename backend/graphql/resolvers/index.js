@@ -4,16 +4,21 @@ const Event = require('../../models/event.js');
 const User = require('../../models/user.js');
 const Booking = require('../../models/booking.js');
 
+const transformEvent = event => {
+    return {
+        ...event._doc,
+        _id: event.id,
+        date: new Date(event._doc.date).toISOString(),
+        creator: user.bind(this, event.creator)
+    };
+};
+
+
 const events = async eventIds => {
     try {
         const events = await Event.find({ _id: { $in: eventIds } });
         return events.map(event => {
-            return {
-                ...event._doc,
-                _id: event.id,
-                date: new Date(event._doc.date).toISOString(),
-                creator: user.bind(this, event.creator)
-            };
+            return transformEvent(event);
         });
     } catch (err) {
         throw err;
@@ -23,11 +28,7 @@ const events = async eventIds => {
 const singleEvent = async eventId => {
     try {
         const event = await Event.findById(eventId);
-        return {
-            ...event._doc,
-            _id: event.id,
-            creator: user.bind(this, event.creator)
-        };
+        return transformEvent(event);
     } catch (err) {
         throw err;
     }
@@ -51,12 +52,7 @@ module.exports = {
         try {
             const events = await Event.find();
             return events.map(event => {
-                return {
-                    ...event._doc,
-                    _id: event.id,
-                    date: new Date(event._doc.date).toISOString(),
-                    creator: user.bind(this, event._doc.creator)
-                };
+                return transformEvent(event);
             });
         } catch (err) {
             throw err;
@@ -91,12 +87,7 @@ module.exports = {
         let createdEvent;
         try {
             const result = await event.save();
-            createdEvent = {
-                ...result._doc,
-                _id: result.id,
-                date: new Date(result._doc.date).toISOString(),
-                creator: user.bind(this, result._doc.creator)
-            };
+            createdEvent = transformEvent(result);
             const creator = await User.findById('6672dacdc4bd75a8a347a166');
             if (!creator) {
                 throw new Error('User not found.');
@@ -145,11 +136,7 @@ module.exports = {
     cancelBooking: async args => {
         try {
             const booking = await Booking.findById(args.bookingId).populate('event');
-            const event = {
-                ...booking.event._doc,
-                _id: booking.event.id,
-                creator: user.bind(this, booking.event._doc.creator)
-            };
+            const event = transformEvent(booking.event);
             await Booking.deleteOne({ _id: args.bookingId });
             return event;
         } catch (err) {
