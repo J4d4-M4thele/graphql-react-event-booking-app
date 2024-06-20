@@ -135,20 +135,24 @@ module.exports = {
             event: fetchedEvent
         });
         const result = await booking.save();
-        return { 
-            ...result._doc, 
+        return {
+            ...result._doc,
             _id: result.id,
             createdAt: new Date(result._doc.createdAt).toISOString(),
-            updatedAt: new Date(result._doc.updatedAt).toISOString() 
+            updatedAt: new Date(result._doc.updatedAt).toISOString()
         };
     },
     cancelBooking: async args => {
         try {
             const booking = await Booking.findById(args.bookingId).populate('event');
-            const event = {...booking.event, _id: booking.event.id, creator: user.bind(this, booking.creator)};
-            Booking.deleteOne({_id: args.bookingId});
+            const event = {
+                ...booking.event._doc,
+                _id: booking.event.id,
+                creator: user.bind(this, booking.event._doc.creator)
+            };
+            await Booking.deleteOne({ _id: args.bookingId });
             return event;
-        }catch (err) {
+        } catch (err) {
             throw err;
         }
     }
